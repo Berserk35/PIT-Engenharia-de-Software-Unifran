@@ -445,7 +445,3 @@ Este projeto está sob a licença MIT. Livre para uso educacional.
 - Documentação completa
 - Validações robustas
 - UX/UI excelente
-
----
-
-**🧁 Bom trabalho e sucesso na apresentação!**
