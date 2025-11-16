@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Berserk Candy - Cupcakes artesanais deliciosos">
+  <title>Berserk Candy - Cupcakes Artesanais</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ============= HEADER ============= -->
+  <header class="header-landing">
+    <div class="container">
+      <div class="logo">
+        <span class="logo-icon">🧁</span>
+        <div>
+          <h1>Berserk Candy</h1>
+          <p class="tagline">Cupcakes Artesanais</p>
+        </div>
+      </div>
+      
+      <nav>
+        <a href="#destaques">Destaques</a>
+        <a href="#categorias">Categorias</a>
+        <a href="login.html" class="btn-nav">Entrar</a>
+        <a href="cadastro.html" class="btn-nav btn-primary">Cadastre-se</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============= HERO SECTION ============= -->
+  <section class="hero">
+    <div class="hero-content">
+      <h2 class="hero-title">
+        Deliciosos Cupcakes<br>
+        <span class="gradient-text">Feitos com Amor</span>
+      </h2>
+      <p class="hero-subtitle">
+        Sabores únicos e irresistíveis para tornar seus momentos especiais ainda mais doces
+      </p>
+      <div class="hero-buttons">
+        <a href="produtos.html" class="btn-hero btn-primary">
+          Ver Produtos
+        </a>
+        <a href="#categorias" class="btn-hero btn-secondary">
+          Explorar Sabores
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= DESTAQUES ============= -->
+  <section id="destaques" class="section-destaques">
+    <div class="container">
+      <h2 class="section-title">
+        <span class="title-icon">✨</span>
+        Nossos Destaques
+      </h2>
+      <p class="section-subtitle">
+        Os cupcakes mais amados pelos nossos clientes
+      </p>
+      
+      <div class="produtos-grid" id="produtosDestaques">
+        <!-- Produtos carregados dinamicamente -->
+        <div class="loading">Carregando delícias... 🧁</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= CATEGORIAS ============= -->
+  <section id="categorias" class="section-categorias">
+    <div class="container">
+      <h2 class="section-title">
+        <span class="title-icon">🎯</span>
+        Explore por Categoria
+      </h2>
+      <p class="section-subtitle">
+        Encontre o sabor perfeito para cada ocasião
+      </p>
+      
+      <div class="categorias-grid">
+        <a href="produtos.html?categoria=chocolate" class="categoria-card" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.9), rgba(101, 67, 33, 0.9)), url('https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400') center/cover;">
+          <div class="categoria-info">
+            <h3>🍫 Chocolate</h3>
+            <p>Puro prazer em cada mordida</p>
+          </div>
+        </a>
+        
+        <a href="produtos.html?categoria=frutas" class="categoria-card" style="background: linear-gradient(135deg, rgba(255, 99, 71, 0.9), rgba(255, 69, 0, 0.9)), url('https://images.unsplash.com/photo-1464454709131-ffd692591ee5?w=400') center/cover;">
+          <div class="categoria-info">
+            <h3>🍓 Frutas</h3>
+            <p>Frescor e sabor natural</p>
+          </div>
+        </a>
+        
+        <a href="produtos.html?categoria=especial" class="categoria-card" style="background: linear-gradient(135deg, rgba(255, 105, 180, 0.9), rgba(218, 112, 214, 0.9)), url('https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=400') center/cover;">
+          <div class="categoria-info">
+            <h3>⭐ Especiais</h3>
+            <p>Edições limitadas e únicas</p>
+          </div>
+        </a>
+        
+        <a href="produtos.html?categoria=classico" class="categoria-card" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.9), rgba(255, 193, 7, 0.9)), url('https://images.unsplash.com/photo-1603532648955-039310d9ed75?w=400') center/cover;">
+          <div class="categoria-info">
+            <h3>👑 Clássicos</h3>
+            <p>Tradicionais e deliciosos</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= CTA SECTION ============= -->
+  <section class="cta-section">
+    <div class="container">
+      <h2 class="section-title">Pronto para Adoçar seu Dia?</h2>
+      <p class="section-subtitle">Faça seu pedido agora e receba em casa!</p>
+      <a href="produtos.html" class="btn-cta">
+        Fazer Pedido Agora 🛒
+      </a>
+    </div>
+  </section>
+
+  <!-- ============= FOOTER ============= -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2024 Berserk Candy. Todos os direitos reservados.</p>
+      <p>Feito com 💖 e muito açúcar</p>
+      <p>
+        <a href="produtos.html">Produtos</a> |
+        <a href="login.html">Login</a> |
+        <a href="cadastro.html">Cadastro</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Carregar produtos em destaque
+    async function carregarDestaques() {
+      try {
+        const response = await fetch('http://localhost:3000/api/produtos');
+        const produtos = await response.json();
+        
+        // Pegar os 3 primeiros produtos
+        const destaques = produtos.slice(0, 3);
+        
+        const container = document.getElementById('produtosDestaques');
+        
+        if (destaques.length === 0) {
+          container.innerHTML = '<p class="no-produtos">Nenhum produto disponível no momento</p>';
+          return;
+        }
+        
+        container.innerHTML = destaques.map(produto => `
+          <div class="produto-card">
+            <div class="produto-badge">⭐ Destaque</div>
+            <img src="${produto.imagem}" alt="${produto.nome}" class="produto-img">
+            <div class="produto-info">
+              <h3>${produto.nome}</h3>
+              <p class="produto-desc">${produto.descricao}</p>
+              <div class="produto-footer">
+                <span class="preco">R$ ${produto.preco.toFixed(2)}</span>
+                <span class="estoque">${produto.estoque} disponíveis</span>
+              </div>
+              <a href="produtos.html" class="btn-produto">Ver Todos</a>
+            </div>
+          </div>
+        `).join('');
+        
+      } catch (error) {
+        console.error('Erro ao carregar destaques:', error);
+        document.getElementById('produtosDestaques').innerHTML = 
+          '<p class="error-message">Erro ao carregar produtos. Certifique-se de que o backend está rodando.</p>';
+      }
+    }
+    
+    // Carregar ao iniciar
+    carregarDestaques();
+  </script>
+</body>
+</html>

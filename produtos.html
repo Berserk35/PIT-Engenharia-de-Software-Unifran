@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produtos - Berserk Candy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">
+        <span class="logo-icon">🧁</span>
+        <div>
+          <h1><a href="index.html">Berserk Candy</a></h1>
+          <p class="tagline">Cupcakes Artesanais</p>
+        </div>
+      </div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="produtos.html" class="active">Produtos</a>
+        <a href="carrinho.html">🛒 Carrinho (<span id="contadorCarrinho">0</span>)</a>
+        <span id="userMenu"></span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="produtos-section">
+      <div class="produtos-header">
+        <h2>Nossos Cupcakes 🧁</h2>
+        
+        <!-- Filtros e Busca -->
+        <div class="filtros">
+          <div class="busca-container">
+            <input 
+              type="text" 
+              id="busca" 
+              placeholder="🔍 Buscar cupcakes..."
+              class="input-busca"
+            >
+          </div>
+          
+          <select id="filtroCategoria" class="select-filtro">
+            <option value="todos">Todas Categorias</option>
+            <option value="chocolate">🍫 Chocolate</option>
+            <option value="frutas">🍓 Frutas</option>
+            <option value="especial">⭐ Especiais</option>
+            <option value="classico">👑 Clássicos</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Grid de Produtos -->
+      <div class="produtos-grid" id="produtosGrid">
+        <div class="loading">Carregando delícias... 🧁</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2024 Berserk Candy. Todos os direitos reservados.</p>
+      <p>Feito com 💖 e muito açúcar</p>
+    </div>
+  </footer>
+
+  <script>
+    let produtos = [];
+    let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    
+    // Verificar usuário logado
+    function verificarUsuario() {
+      const usuario = JSON.parse(localStorage.getItem('usuario'));
+      const userMenu = document.getElementById('userMenu');
+      
+      if (usuario) {
+        userMenu.innerHTML = `
+          <span class="user-info">Olá, ${usuario.nome.split(' ')[0]}!</span>
+          <a href="pedidos.html">Pedidos</a>
+          <a href="#" onclick="logout()">Sair</a>
+        `;
+      } else {
+        userMenu.innerHTML = `
+          <a href="login.html">Login</a>
+          <a href="cadastro.html" class="btn-nav btn-primary">Cadastre-se</a>
+        `;
+      }
+    }
+    
+    function logout() {
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
+    
+    // Atualizar contador do carrinho
+    function atualizarContador() {
+      const total = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
+      document.getElementById('contadorCarrinho').textContent = total;
+    }
+    
+    // Carregar produtos
+    async function carregarProdutos(categoria = 'todos', busca = '') {
+      try {
+        let url = 'http://localhost:3000/api/produtos';
+        const params = new URLSearchParams();
+        
+        if (categoria !== 'todos') params.append('categoria', categoria);
+        if (busca) params.append('busca', busca);
+        
+        if (params.toString()) url += '?' + params.toString();
+        
+        const response = await fetch(url);
+        produtos = await response.json();
+        
+        exibirProdutos();
+        
+      } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+        document.getElementById('produtosGrid').innerHTML = 
+          '<p class="error-message">Erro ao carregar produtos. Verifique se o backend está rodando.</p>';
+      }
+    }
+    
+    // Exibir produtos
+    function exibirProdutos() {
+      const grid = document.getElementById('produtosGrid');
+      
+      if (produtos.length === 0) {
+        grid.innerHTML = '<p class="no-produtos">Nenhum produto encontrado 😢</p>';
+        return;
+      }
+      
+      grid.innerHTML = produtos.map(produto => `
+        <div class="produto-card">
+          <img src="${produto.imagem}" alt="${produto.nome}" class="produto-img">
+          <div class="produto-info">
+            <span class="produto-categoria">${getCategoriaLabel(produto.categoria)}</span>
+            <h3>${produto.nome}</h3>
+            <p class="produto-desc">${produto.descricao}</p>
+            <div class="produto-footer">
+              <span class="preco">R$ ${produto.preco.toFixed(2)}</span>
+              <span class="estoque">${produto.estoque} em estoque</span>
+            </div>
+            ${produto.estoque > 0 ? `
+              <button 
+                onclick="adicionarAoCarrinho(${produto.id})" 
+                class="btn-produto"
+                ${estaNoCarrinho(produto.id) ? 'disabled' : ''}
+              >
+                ${estaNoCarrinho(produto.id) ? '✓ No Carrinho' : '+ Adicionar'}
+              </button>
+            ` : `
+              <button class="btn-produto" disabled>Esgotado</button>
+            `}
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function getCategoriaLabel(categoria) {
+      const labels = {
+        chocolate: '🍫 Chocolate',
+        frutas: '🍓 Frutas',
+        especial: '⭐ Especial',
+        classico: '👑 Clássico'
+      };
+      return labels[categoria] || categoria;
+    }
+    
+    function estaNoCarrinho(produtoId) {
+      return carrinho.some(item => item.produtoId === produtoId);
+    }
+    
+    // Adicionar ao carrinho
+    function adicionarAoCarrinho(produtoId) {
+      const produto = produtos.find(p => p.id === produtoId);
+      
+      if (!produto) return;
+      
+      if (produto.estoque === 0) {
+        alert('Produto esgotado!');
+        return;
+      }
+      
+      // Verificar se já está no carrinho
+      if (estaNoCarrinho(produtoId)) {
+        alert('Produto já está no carrinho!');
+        return;
+      }
+      
+      // Adicionar ao carrinho
+      carrinho.push({
+        produtoId: produto.id,
+        nome: produto.nome,
+        preco: produto.preco,
+        imagem: produto.imagem,
+        quantidade: 1,
+        estoqueDisponivel: produto.estoque
+      });
+      
+      localStorage.setItem('carrinho', JSON.stringify(carrinho));
+      atualizarContador();
+      exibirProdutos(); // Atualizar botões
+      
+      // Mostrar feedback
+      mostrarToast('✅ Produto adicionado ao carrinho!');
+    }
+    
+    function mostrarToast(mensagem) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = mensagem;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 100);
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+    
+    // Filtros
+    document.getElementById('filtroCategoria').addEventListener('change', (e) => {
+      const categoria = e.target.value;
+      const busca = document.getElementById('busca').value;
+      carregarProdutos(categoria, busca);
+    });
+    
+    document.getElementById('busca').addEventListener('input', (e) => {
+      const busca = e.target.value;
+      const categoria = document.getElementById('filtroCategoria').value;
+      
+      // Debounce
+      clearTimeout(window.buscaTimeout);
+      window.buscaTimeout = setTimeout(() => {
+        carregarProdutos(categoria, busca);
+      }, 500);
+    });
+    
+    // Inicializar
+    verificarUsuario();
+    atualizarContador();
+    
+    // Verificar parâmetros da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoriaUrl = urlParams.get('categoria');
+    
+    if (categoriaUrl) {
+      document.getElementById('filtroCategoria').value = categoriaUrl;
+      carregarProdutos(categoriaUrl);
+    } else {
+      carregarProdutos();
+    }
+  </script>
+</body>
+</html>

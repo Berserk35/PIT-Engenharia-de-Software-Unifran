@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus Pedidos - Berserk Candy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">
+        <span class="logo-icon">🧁</span>
+        <div>
+          <h1><a href="index.html">Berserk Candy</a></h1>
+          <p class="tagline">Cupcakes Artesanais</p>
+        </div>
+      </div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="produtos.html">Produtos</a>
+        <a href="carrinho.html">🛒 Carrinho</a>
+        <span id="userMenu"></span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="pedidos-section">
+      <h2>📦 Meus Pedidos</h2>
+      
+      <div id="pedidosContainer" class="pedidos-container">
+        <div class="loading">Carregando pedidos... 🧁</div>
+      </div>
+      
+      <div id="pedidosVazio" class="pedidos-vazio" style="display: none;">
+        <p>Você ainda não fez nenhum pedido 😢</p>
+        <a href="produtos.html" class="btn-primary">Fazer Primeiro Pedido</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2024 Berserk Candy. Todos os direitos reservados.</p>
+      <p>Feito com 💖 e muito açúcar</p>
+    </div>
+  </footer>
+
+  <script>
+    // Verificar se está logado
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+    
+    if (!usuario) {
+      alert('Você precisa estar logado para ver seus pedidos!');
+      window.location.href = 'login.html';
+    }
+    
+    // Verificar usuário logado
+    function verificarUsuario() {
+      const userMenu = document.getElementById('userMenu');
+      
+      if (usuario) {
+        userMenu.innerHTML = `
+          <span class="user-info">Olá, ${usuario.nome.split(' ')[0]}!</span>
+          <a href="pedidos.html" class="active">Pedidos</a>
+          <a href="#" onclick="logout()">Sair</a>
+        `;
+      }
+    }
+    
+    function logout() {
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
+    
+    // Carregar pedidos
+    async function carregarPedidos() {
+      try {
+        const response = await fetch(`http://localhost:3000/api/pedidos/${usuario.id}`);
+        const pedidos = await response.json();
+        
+        exibirPedidos(pedidos);
+        
+      } catch (error) {
+        console.error('Erro ao carregar pedidos:', error);
+        document.getElementById('pedidosContainer').innerHTML = 
+          '<p class="error-message">Erro ao carregar pedidos. Verifique se o backend está rodando.</p>';
+      }
+    }
+    
+    // Exibir pedidos
+    function exibirPedidos(pedidos) {
+      const container = document.getElementById('pedidosContainer');
+      const vazio = document.getElementById('pedidosVazio');
+      
+      if (pedidos.length === 0) {
+        container.style.display = 'none';
+        vazio.style.display = 'block';
+        return;
+      }
+      
+      vazio.style.display = 'none';
+      container.style.display = 'block';
+      
+      // Ordenar por data (mais recente primeiro)
+      pedidos.sort((a, b) => new Date(b.dataPedido) - new Date(a.dataPedido));
+      
+      container.innerHTML = pedidos.map(pedido => `
+        <div class="pedido-card">
+          <div class="pedido-header">
+            <div>
+              <h3>Pedido #${pedido.id}</h3>
+              <p class="pedido-data">${formatarData(pedido.dataPedido)}</p>
+            </div>
+            <div class="pedido-status ${pedido.status}">
+              ${getStatusLabel(pedido.status)}
+            </div>
+          </div>
+          
+          <div class="pedido-itens">
+            ${pedido.itens.map(item => `
+              <div class="pedido-item">
+                <img src="${item.imagem}" alt="${item.nome}" class="pedido-item-img">
+                <div class="pedido-item-info">
+                  <p class="pedido-item-nome">${item.nome}</p>
+                  <p class="pedido-item-detalhes">
+                    ${item.quantidade}x R$ ${item.preco.toFixed(2)}
+                  </p>
+                </div>
+                <div class="pedido-item-total">
+                  R$ ${(item.quantidade * item.preco).toFixed(2)}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="pedido-footer">
+            <span class="pedido-total-label">Total:</span>
+            <span class="pedido-total-valor">R$ ${pedido.total.toFixed(2)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Formatar data
+    function formatarData(dataISO) {
+      const data = new Date(dataISO);
+      const dia = String(data.getDate()).padStart(2, '0');
+      const mes = String(data.getMonth() + 1).padStart(2, '0');
+      const ano = data.getFullYear();
+      const hora = String(data.getHours()).padStart(2, '0');
+      const minuto = String(data.getMinutes()).padStart(2, '0');
+      
+      return `${dia}/${mes}/${ano} às ${hora}:${minuto}`;
+    }
+    
+    // Get status label
+    function getStatusLabel(status) {
+      const labels = {
+        pendente: '⏳ Pendente',
+        processando: '🔄 Em Preparo',
+        enviado: '🚚 Enviado',
+        entregue: '✅ Entregue',
+        cancelado: '❌ Cancelado'
+      };
+      return labels[status] || status;
+    }
+    
+    // Inicializar
+    verificarUsuario();
+    carregarPedidos();
+  </script>
+</body>
+</html>
